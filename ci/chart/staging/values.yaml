@@ -1,0 +1,30 @@
+name: backend
+namespace: jlp-staging
+serviceAccount: true
+deployment:
+  deployStrategyType: Recreate
+  forceDeploy: true
+  image:
+    repository: registry.saritasa.com/jlp/backend:staging
+    pullPolicy: Always
+    imagePullSecrets:
+      - name: saritasa-gitlab-registry
+  env:
+  - name: APP_ENV
+    value: staging
+  - name: VAULT_SECRET
+    value: https://vault.saritasa.io/v1/projects/jlp-backend-staging
+  - name: TEMPLATE_PATH
+    value: /home/www/app/config/settings/staging.template
+  traefik:
+    port: 80
+    tls: saritasa-hosting.com
+    dns: jlp-stage-backend.saritasa-hosting.com
+    forceSSL: true
+  resources:
+    limits:
+      cpu: 512m
+      memory: 2048Mi
+    requests:
+      cpu: 0m
+      memory: 0Mi

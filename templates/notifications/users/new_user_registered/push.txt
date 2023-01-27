@@ -1,0 +1,4 @@
+{% extends "notifications/base.txt" %}
+{% block content %}
+Attorney user {{name}} has completed registraion and waiting for your approval
+{% endblock %}

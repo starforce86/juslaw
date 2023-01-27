@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrations
+  namespace: jlp-staging
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 900
+  template:
+    spec: 
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: saritasa-gitlab-registry
+      serviceAccountName: jlp-staging
+      nodeSelector:
+        workload: job
+      containers:
+        - name: migrations
+          image: registry.saritasa.com/jlp/backend:staging
+          imagePullPolicy: Always
+          env:
+          - name: APP_ENV
+            value: staging
+          - name: VAULT_SECRET
+            value: https://vault.saritasa.io/v1/projects/jlp-backend-staging
+          - name: TEMPLATE_PATH
+            value: /home/www/app/config/settings/staging.template
+          command:
+            - /usr/bin/run-migrations.sh
+          resources:
+            limits:
+              cpu: 256m
+              memory: 512Mi
+            requests:
+              cpu: 0m
+              memory: 0Mi

@@ -1,0 +1,42 @@
+-r base.in
+
+django-extensions
+django-debug-toolbar
+django-pdb
+Werkzeug
+
+# improved REPL
+ipdb
+ipython
+
+# emacs
+rope
+jedi
+importmagic
+elpy
+yapf
+
+# Sphinx
+Sphinx
+sphinxcontrib-napoleon
+sphinx_rtd_theme
+sphinxcontrib-blockdiag
+
+# package to build sphinx docs
+sphinx-autobuild
+
+# Libraries for rendering UML diagrams
+sphinxcontrib-plantuml
+recommonmark
+
+# tool for celery monitoring
+flower==0.9.7
+
+# Tool for task and run
+invoke
+
+# Tool for confirm command
+click
+
+# Tool for color in console
+termcolor

@@ -1,0 +1,8 @@
+{% extends "notifications/base.txt" %}
+{% block content %}
+{% if recipient.is_attorney %}
+  Potential client {{ instance.client.display_name }} wants to make a contact with you.
+{% elif recipient.is_client %}
+  Attorney {{ instance.attorney.display_name }} wants to make a contact with you.
+{% endif %}
+{% endblock %}

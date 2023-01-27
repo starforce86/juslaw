@@ -1,0 +1,2 @@
+[flake8]
+exclude = migrations, .venv, __init__.py, config

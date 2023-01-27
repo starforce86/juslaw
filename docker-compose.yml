@@ -1,0 +1,133 @@
+version: '3.7'
+
+volumes:
+  ipython_history: {}
+
+x-web_base: &web_base
+  build:
+    context: .
+    dockerfile: ci/docker/Dockerfile-dev
+  volumes:
+    - ./:/home/www/app
+    - ipython_history:/root/.ipython/profile_default
+  env_file:
+    - .env
+
+services:
+  # ################################################################################
+  # Database
+  # ################################################################################
+  postgres:
+    image: mdillon/postgis:11
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h postgres -t 5 -U jlp_user || false"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    environment:
+      - POSTGRES_DB=jlp_dev
+      - POSTGRES_USER=jlp_user
+      - POSTGRES_PASSWORD=manager
+
+  # ################################################################################
+  # Caching
+  # ################################################################################
+  redis:
+    image: redis:4.0
+    ports:
+      - "6379:6379"
+
+  # ################################################################################
+  # Queue broker for Celery
+  # ################################################################################
+  rabbitmq:
+    image: rabbitmq:3.6.5
+    ports:
+      - "5672:5672"
+
+  # ################################################################################
+  # Abstraction
+  # ################################################################################
+  # web_base: &web_base
+  #   build: .
+  #   volumes:
+  #     - ./:/home/www/app
+  #     - ipython_history:/root/.ipython/profile_default
+  #   env_file:
+  #     - .env
+  #   command: echo 'Shutting down...'
+
+  # ################################################################################
+  # Django Backend / API
+  # ################################################################################
+  web:
+    <<: *web_base
+    ports:
+      - "8080:8000"
+    command: bash -c "python3 manage.py migrate & python3 manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - postgres
+      - redis
+    links:
+      - postgres
+      - redis
+      - rabbitmq
+    environment:
+      - ENVIRONMENT=local
+
+  # ################################################################################
+  # Celery scheduler
+  # ################################################################################
+  celery_beat:
+    <<: *web_base
+    command: bash -c "rm celerybeat.pid & celery beat --app config.celery:app -l info -S django"
+    depends_on:
+      - celery_worker
+      - postgres
+      - redis
+      - rabbitmq
+    links:
+      - postgres
+      - redis
+      - rabbitmq
+
+  # ################################################################################
+  # Celery worker running async tasks
+  # ################################################################################
+  celery_worker:
+    <<: *web_base
+    command: celery worker --app config.celery:app -l info
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    links:
+      - postgres
+      - redis
+      - rabbitmq
+
+  # ################################################################################
+  # Celery monitoring tool
+  # ################################################################################
+  celery_flower:
+    <<: *web_base
+    command: celery flower --app config.celery:app
+    depends_on:
+      - rabbitmq
+    links:
+      - rabbitmq
+    ports:
+      - "5555:5555"
+
+  # ################################################################################
+  # Documentation
+  # ################################################################################
+  # sphinx:
+  #   <<: *web_base
+  #   ports:
+  #     - "8003:8003"
+  #   command: sphinx-autobuild docs .dev/sphinx-docs -H 0.0.0.0 -p 8003 --watch docs/
+  #   environment:
+  #     - DJANGO_ENV=local

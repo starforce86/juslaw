@@ -1,0 +1,80 @@
+# Move to python:3.8.2-slim-buster, because it easier and faster to change python versions
+# and it has gdal version(2.4) supported by Django 3.
+FROM python:3.8.2-slim-buster
+
+EXPOSE 80
+WORKDIR /home/www/app
+CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENV TERM=xterm \
+    LC_ALL=en_US.UTF-8 \
+    C_FORCE_ROOT=True
+
+### Dependencies:
+# build-essential: dependencies for building Python packages
+# git: to install python deps for github
+# curl: to download rattus
+# nginx: web server (front before uwsgi)
+# libpcre3-dev: for uwsgi(internal routing)
+# supervisor: process manager
+# locales locales-all: set up locales (en_US.UTF-8)
+# libproj-dev gdal-bin: for geoDjango features
+# gettext: Django messages translation
+# mediainfo: lib to extract media files duration and other info
+# libmagic-dev: dependencey of python-magic
+# xvfb libfontconfig wkhtmltopdf: to generate invoices' pdf files
+# cron: for periodic tasks in celery
+# postgresql-client-11: `psql` client
+
+
+RUN apt-get update && \
+    ### Install base deps
+    apt-get install -yq build-essential && \
+    ### Install appp deps
+    apt-get install -yq --fix-broken \
+    git curl nginx supervisor locales locales-all cron \
+    gdal-bin libpcre3-dev libproj-dev libmagic-dev gettext mediainfo \
+    ### Install psql client
+    postgresql-client-11 \
+    ### Install wkhtmltopdf (to create invoice's pdfs)
+    xvfb libfontconfig wkhtmltopdf && \
+    ### Fix libQt5Core.so.5 error
+    # https://github.com/dnschneid/crouton/wiki/Fix-error-while-loading-shared-libraries:-libQt5Core.so.5
+    strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5 && \
+    ### Install tools for python
+    pip install -U --no-cache-dir pip pip-tools setuptools==58.0.1 && \
+    ### Install rattus
+    curl -LSs -o /usr/bin/rattus \
+    https://github.com/Saritasa/rattus/releases/download/0.1/rattus-linux-amd64 && \
+    chmod +x /usr/bin/rattus && \
+    ### Cleaning up unused files
+    apt-get purge -yq --auto-remove -o APT::AutoRemove::RecommendsImportant=false  && \
+    rm -rf /var/lib/apt/lists/*
+
+### Set up environment variables
+ARG APP_ENV=development
+ARG DEV_ENVIRONMENT=False
+ARG CHECK_STYLE=True
+ENV APP_ENV=${APP_ENV} \
+    DJANGO_SETTINGS_MODULE=config.settings.production \
+    PIPENV_DEV=$DEV_ENVIRONMENT \
+    DEV_ENVIROMENT=$DEV_ENVIRONMENT \
+    CHECK_STYLE=$CHECK_STYLE \
+    ENVIRONMENT=prod
+
+### Install requirements
+COPY requirements/${APP_ENV}.txt /home/www/app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+### Create nginx user
+RUN useradd --create-home --system --shell /bin/bash --group sudo nginx
+
+### Add config files to container
+COPY --chown=nginx:nginx ci/docker/rootfs /
+
+### Add source code to container
+COPY --chown=nginx:nginx . /home/www/app/
+
+### Check code style
+RUN if [ "$CHECK_STYLE" = "True" ] ; then run-stylecheck.sh; fi && \
+### Build docs
+    if [ "$DEV_ENVIROMENT" = "True" ] ; then run-builddocs.sh; fi

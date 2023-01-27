@@ -1,0 +1,4 @@
+{% extends "notifications/base.txt" %}
+{% block content %}
+ {{ instance.attorney.full_name }} has withdrawn proposal he submitted on the {{instance.post.title}}.
+{% endblock %}
