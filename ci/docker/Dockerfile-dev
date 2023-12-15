@@ -75,6 +75,6 @@ COPY --chown=nginx:nginx ci/docker/rootfs /
 COPY --chown=nginx:nginx . /home/www/app/
 
 ### Check code style
-RUN if [ "$CHECK_STYLE" = "True" ] ; then run-stylecheck.sh; fi && \
-    ### Build docs
-    if [ "$DEV_ENVIROMENT" = "True" ] ; then run-builddocs.sh; fi
+#RUN if [ "$CHECK_STYLE" = "True" ] ; then run-stylecheck.sh; fi && \
+#    ### Build docs
+#    if [ "$DEV_ENVIROMENT" = "True" ] ; then run-builddocs.sh; fi

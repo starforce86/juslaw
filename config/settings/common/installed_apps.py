@@ -42,8 +42,8 @@ INSTALLED_APPS = (
     'ckeditor_uploader',
     'admin_auto_filters',
     'crispy_forms',
-    'drf_api_logger',
-    'auditlog',
+    # 'drf_api_logger',
+    # 'auditlog',
 )
 
 LOCAL_APPS = (

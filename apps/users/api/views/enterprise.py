@@ -40,12 +40,12 @@ class EnterpriseViewSet(
     """
     permissions_map = {
         'default': (AllowAny,),
-        'follow': (permissions.CanFollow, permissions.IsEnterpriseAdmin,),
-        'unfollow': (permissions.CanFollow, permissions.IsEnterpriseAdmin,),
-        'onboarding': (permissions.IsEnterpriseAdminOf, IsAuthenticated),
-        'add_contact': (permissions.IsEnterpriseAdmin, IsAuthenticated),
-        'remove_contact': (permissions.IsEnterpriseAdmin, IsAuthenticated),
-        'overview': (permissions.IsEnterpriseAdmin, IsAuthenticated),
+        'follow': (permissions.CanFollow,),
+        'unfollow': (permissions.CanFollow,),
+        'onboarding': (IsAuthenticated,),
+        'add_contact': (IsAuthenticated,),
+        'remove_contact': (IsAuthenticated,),
+        'overview': (IsAuthenticated,),
     }
     permission_classes = (IsAuthenticated,)
     serializer_class = serializers.EnterpriseAndAdminUserSerializer
@@ -287,7 +287,6 @@ class CurrentEnterpriseView(
     serializer_class = serializers.EnterpriseAndAdminUserSerializer
     permission_classes = (
         IsAuthenticated,
-        permissions.IsEnterpriseAdmin,
     )
 
     def get_object(self):

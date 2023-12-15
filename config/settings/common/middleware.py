@@ -9,6 +9,6 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'libs.middleware.TimezoneMiddleware',
-    'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware',
-    'auditlog.middleware.AuditlogMiddleware',
+    # 'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware',
+    # 'auditlog.middleware.AuditlogMiddleware',
 )

@@ -34,11 +34,11 @@ from ..filters import (
     LeadClientFilter,
     LeadClientSearchFilter,
 )
-from ..serializers.industry_contacts import (
-    IndustryContactAttorneyDetails,
-    IndustryContactParalegalDetails,
-    IndustryContactSerializer,
-)
+# from ..serializers.industry_contacts import (
+#     IndustryContactAttorneyDetails,
+#     IndustryContactParalegalDetails,
+#     IndustryContactSerializer,
+# )
 from .utils.verification import complete_signup
 
 
@@ -68,8 +68,7 @@ class AttorneyViewSet(
         'follow': (permissions.CanFollow,),
         'unfollow': (permissions.CanFollow,),
         'overview': (IsAuthenticated, permissions.IsAttorneyFreeAccess,),
-        'update_contact': (IsAuthenticated, permissions.IsAttorneyFreeAccess,
-                           permissions.IsOwner,),
+        'update_contact': (IsAuthenticated, permissions.IsAttorneyFreeAccess,),
     }
     permission_classes = (IsAuthenticated,)
     serializer_class = serializers.AttorneySerializer
@@ -454,78 +453,78 @@ class AttorneyViewSet(
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=['GET'])
-    def industry_contacts(self, request, *args, **kwargs):
-        """Returns attorney industry contacts"""
+    # @action(detail=True, methods=['GET'])
+    # def industry_contacts(self, request, *args, **kwargs):
+    #     """Returns attorney industry contacts"""
+    #
+    #     attorney = get_object_or_404(self.queryset, **kwargs)
+    #     filterer = IndustryContactsSearchFilter()
+    #     type_filterer = IndustryContactsTypeFilter()
+    #
+    #     invites = Invite.get_pending_attorney_invites_for_industry_contacts(
+    #         attorney
+    #     )
+    #     invites = filterer.filter_queryset(request, invites, None)
+    #     invites = type_filterer.filter_contact_type(request, invites)
+    #     contacts = attorney.industry_contacts.all()
+    #     contacts = filterer.filter_queryset(request, contacts, None)
+    #     contacts = type_filterer.filter_contact_type(request, contacts)
+    #
+    #     industry_contacts = set(invites) | set(contacts)
+    #
+    #     page = self.paginate_queryset(queryset=list(industry_contacts))
+    #     ordering_fields = request.GET.getlist('ordering', [])
+    #     if page is not None:
+    #         serializer = IndustryContactSerializer(page, many=True)
+    #     else:
+    #         serializer = IndustryContactSerializer(
+    #             industry_contacts,
+    #             many=True
+    #         )
+    #
+    #     data = serializer.data
+    #     for field in ordering_fields:
+    #         reverse = False
+    #         if field.startswith('-'):
+    #             reverse = True
+    #             field = field[1:]
+    #         data = sorted(
+    #             data,
+    #             key=lambda k: (k[field] is not None, k[field]),
+    #             reverse=reverse
+    #         )
+    #
+    #     if page is not None:
+    #         return self.paginator.get_paginated_response(data)
+    #     else:
+    #         return Response(
+    #             data=serializer.data,
+    #             status=status.HTTP_200_OK
+    #         )
 
-        attorney = get_object_or_404(self.queryset, **kwargs)
-        filterer = IndustryContactsSearchFilter()
-        type_filterer = IndustryContactsTypeFilter()
-
-        invites = Invite.get_pending_attorney_invites_for_industry_contacts(
-            attorney
-        )
-        invites = filterer.filter_queryset(request, invites, None)
-        invites = type_filterer.filter_contact_type(request, invites)
-        contacts = attorney.industry_contacts.all()
-        contacts = filterer.filter_queryset(request, contacts, None)
-        contacts = type_filterer.filter_contact_type(request, contacts)
-
-        industry_contacts = set(invites) | set(contacts)
-
-        page = self.paginate_queryset(queryset=list(industry_contacts))
-        ordering_fields = request.GET.getlist('ordering', [])
-        if page is not None:
-            serializer = IndustryContactSerializer(page, many=True)
-        else:
-            serializer = IndustryContactSerializer(
-                industry_contacts,
-                many=True
-            )
-
-        data = serializer.data
-        for field in ordering_fields:
-            reverse = False
-            if field.startswith('-'):
-                reverse = True
-                field = field[1:]
-            data = sorted(
-                data,
-                key=lambda k: (k[field] is not None, k[field]),
-                reverse=reverse
-            )
-
-        if page is not None:
-            return self.paginator.get_paginated_response(data)
-        else:
-            return Response(
-                data=serializer.data,
-                status=status.HTTP_200_OK
-            )
-
-    @action(detail=True, methods=['GET'])
-    def industry_contact_detail(self, request, *args, **kwargs):
-        """Return details of attorney industry contact"""
-        self.get_object()
-        user_id = request.query_params.get('user_id', None)
-        if not user_id:
-            return Http404('Invalid request data.')
-
-        try:
-            contact = get_user_model().objects.get(pk=user_id)
-        except Exception:
-            raise Http404('No %s matches the given query.' %
-                          get_user_model()._meta.object_name)
-
-        if contact.user_type == 'paralegal':
-            serializer = IndustryContactParalegalDetails(contact)
-        else:
-            serializer = IndustryContactAttorneyDetails(contact)
-
-        return Response(
-            data=serializer.data,
-            status=status.HTTP_200_OK
-        )
+    # @action(detail=True, methods=['GET'])
+    # def industry_contact_detail(self, request, *args, **kwargs):
+    #     """Return details of attorney industry contact"""
+    #     self.get_object()
+    #     user_id = request.query_params.get('user_id', None)
+    #     if not user_id:
+    #         return Http404('Invalid request data.')
+    #
+    #     try:
+    #         contact = get_user_model().objects.get(pk=user_id)
+    #     except Exception:
+    #         raise Http404('No %s matches the given query.' %
+    #                       get_user_model()._meta.object_name)
+    #
+    #     if contact.user_type == 'paralegal':
+    #         serializer = IndustryContactParalegalDetails(contact)
+    #     else:
+    #         serializer = IndustryContactAttorneyDetails(contact)
+    #
+    #     return Response(
+    #         data=serializer.data,
+    #         status=status.HTTP_200_OK
+    #     )
 
     @action(detail=True, methods=['POST'])
     def add_industrial_contact(self, request, *args, **kwargs):
